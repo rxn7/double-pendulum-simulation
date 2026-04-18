@@ -1,3 +1,4 @@
+import "./style.css";
 import "./ui_handler";
 import Simulation from "./simulation";
 import Renderer from "./renderer";
