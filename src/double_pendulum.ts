@@ -1,8 +1,6 @@
 import { SimulationProperties } from "./simulation_properties";
 
 export interface PendulumArmState {
-	length: number;
-	mass: number;
 	angle: number;
 	angularVelocity: number;
 };
@@ -18,8 +16,8 @@ export class DoublePendulum {
 
 	public update(deltaTime: number): void {
 		const angleDelta: number = this.arm1.angle - this.arm2.angle;
-		const adjustedMass: number = 2 * this.arm1.mass + this.arm2.mass;
-		const commonDenominatorFactor: number = adjustedMass - this.arm2.mass * Math.cos(2 * this.arm1.angle - 2 * this.arm2.angle);
+		const adjustedMass: number = 2 * SimulationProperties.mass1 + SimulationProperties.mass2;
+		const commonDenominatorFactor: number = adjustedMass - SimulationProperties.mass2 * Math.cos(2 * this.arm1.angle - 2 * this.arm2.angle);
 
 		const arm1AngularAcceleration: number = this.calculateArm1AngularAcceleration(angleDelta, adjustedMass, commonDenominatorFactor);
 		const arm2AngularAcceleration: number = this.calculateArm2AngularAcceleration(angleDelta, commonDenominatorFactor);
@@ -35,26 +33,26 @@ export class DoublePendulum {
 
 	private calculateArm1AngularAcceleration(angleDelta: number, adjustedMass: number, commonDenominatorFactor: number): number {
 		const upperGravityPull: number = -SimulationProperties.gravity * adjustedMass * Math.sin(this.arm1.angle);
-		const lowerGravityDragOnUpper: number = -this.arm2.mass * SimulationProperties.gravity * Math.sin(this.arm1.angle - 2 * this.arm2.angle);
+		const lowerGravityDragOnUpper: number = -SimulationProperties.mass2 * SimulationProperties.gravity * Math.sin(this.arm1.angle - 2 * this.arm2.angle);
 
-		const centrifugalPull: number = -2 * Math.sin(angleDelta) * this.arm2.mass * (
-			(this.arm2.angularVelocity * this.arm2.angularVelocity * this.arm2.length) +
-			(this.arm1.angularVelocity * this.arm1.angularVelocity * this.arm1.length * Math.cos(angleDelta))
+		const centrifugalPull: number = -2 * Math.sin(angleDelta) * SimulationProperties.mass2 * (
+			(this.arm2.angularVelocity * this.arm2.angularVelocity * SimulationProperties.length2) +
+			(this.arm1.angularVelocity * this.arm1.angularVelocity * SimulationProperties.length1 * Math.cos(angleDelta))
 		);
 
-		return (upperGravityPull + lowerGravityDragOnUpper + centrifugalPull) / (this.arm1.length * commonDenominatorFactor);
+		return (upperGravityPull + lowerGravityDragOnUpper + centrifugalPull) / (SimulationProperties.length1 * commonDenominatorFactor);
 	}
 
 	private calculateArm2AngularAcceleration(angleDelta: number, commonDenominatorFactor: number): number {
-		const totalMass: number = this.arm1.mass + this.arm2.mass;
+		const totalMass: number = SimulationProperties.mass1 + SimulationProperties.mass2;
 		const forceCouplingMultiplier = 2 * Math.sin(angleDelta);
 
 		const centrifugalAndGravityForce =
-			(this.arm1.angularVelocity * this.arm1.angularVelocity * this.arm1.length * totalMass) +
+			(this.arm1.angularVelocity * this.arm1.angularVelocity * SimulationProperties.length1 * totalMass) +
 			(SimulationProperties.gravity * totalMass * Math.cos(this.arm1.angle) +
-			(this.arm2.angularVelocity * this.arm2.angularVelocity * this.arm2.length * this.arm2.mass * Math.cos(angleDelta))
+			(this.arm2.angularVelocity * this.arm2.angularVelocity * SimulationProperties.length2 * SimulationProperties.mass2 * Math.cos(angleDelta))
 		);
 
-		return (forceCouplingMultiplier * centrifugalAndGravityForce) / (this.arm2.length * commonDenominatorFactor);
+		return (forceCouplingMultiplier * centrifugalAndGravityForce) / (SimulationProperties.length2 * commonDenominatorFactor);
 	}
 }

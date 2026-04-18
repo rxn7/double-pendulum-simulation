@@ -15,14 +15,10 @@ export default class Simulation {
 			{
 				angle: 0,
 				angularVelocity: 3,
-				length: 1,
-				mass: 2,
 			},
 			{
 				angle: 0,
 				angularVelocity: -1,
-				length: 1,
-				mass: 2,
 			}
 		);
 
