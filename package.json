@@ -1,0 +1,29 @@
+{
+	"name": "ts_template",
+	"description": "",
+	"version": "0.0.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/rxn7/ts_template.git"
+	},
+	"keywords": [
+		"typescript"
+	],
+	"scripts": {
+		"build": "webpack --mode production",
+		"dev": "webpack-dev-server --mode development",
+		"deploy": "npm run build && gh-pages --dist build"
+	},
+	"author": "rxn7",
+	"license": "ISC",
+	"homepage": "https://rxn.lol",
+	"devDependencies": {
+		"file-loader": "^6.2.0",
+		"gh-pages": "^6.0.0",
+		"html-webpack-plugin": "^5.6.3",
+		"ts-loader": "^9.5.2",
+		"webpack": "^5.98.0",
+		"webpack-cli": "^6.0.1",
+		"webpack-dev-server": "^5.2.0"
+	}
+}
