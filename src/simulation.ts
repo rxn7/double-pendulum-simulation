@@ -11,8 +11,7 @@ export default class Simulation {
 		this.pendulums = [];
 
 		const pendulum: DoublePendulum = new DoublePendulum(
-			0, 0,
-			{
+			0, 0, {
 				angle: 0,
 				angularVelocity: 3,
 			},
@@ -33,6 +32,8 @@ export default class Simulation {
 	public addPendulum(pendulum: DoublePendulum): void {
 		this.pendulums.push(pendulum);
 	}
+
+	// TODO: Fixed time step + accumulator
 
 	private step(time: DOMHighResTimeStamp): void {
 		const deltaTime: number = Math.min(0.1, (time - this.lastStepTime) * 0.001);
