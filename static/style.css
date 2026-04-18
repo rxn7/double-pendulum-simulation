@@ -1,10 +1,56 @@
 body {
 	padding: 0;
 	margin: 0;
+
+	width: 100vw;
+	min-height: 100vh;
 }
 
-h1 {
-	text-align: center;
-	font: monospace;
-	color: red;
+#simulation-container {
+	width: 100%;
+	min-height: 100vh;
+	align-items: center;
+	justify-content: center;
+	gap: 40px;
+	display: flex;
+	flex-direction: row;
+}
+
+@media only screen and (max-width: 1080px) {
+	#simulation-container {
+		flex-direction: column;
+	}
+}
+
+#simulation-canvas {
+	border: 2px solid #222;
+}
+
+#controls-container * {
+	user-select: none;
+}
+
+.control-row {
+	width: 400px;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.control-row label {
+	width: 100px;
+	flex-shrink: 0;
+}
+
+.control-row input {
+	width: 200px;
+	flex-shrink: 0;
+}
+
+.control-row .value-display {
+	flex-grow: 1;
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
