@@ -1,58 +1,98 @@
 import { SimulationProperties } from "./simulation_properties";
 
-export interface PendulumArmState {
-	angle: number;
-	angularVelocity: number;
+export interface DoublePendulumState {
+	angle1: number;
+	angle2: number;
+	velocity1: number;
+	velocity2: number;
+};
+
+export interface DoublePendulumDerivatives {
+	velocity1: number;
+	velocity2: number;
+	acceleration1: number;
+	acceleration2: number;
 };
 
 export class DoublePendulum {
-	constructor(
-		public originX: number, 
-		public originY: number, 
-		public arm1: PendulumArmState, 
-		public arm2: PendulumArmState
-	) {
+	public state: DoublePendulumState;
+
+	constructor(public originX: number, public originY: number, angle1: number, angle2: number) {
+		this.state = {
+			angle1: angle1, 
+			angle2: angle2,
+			velocity1: 0,
+			velocity2: 0
+		}
 	}
 
 	public update(deltaTime: number): void {
-		const angleDelta: number = this.arm1.angle - this.arm2.angle;
-		const adjustedMass: number = 2 * SimulationProperties.mass1 + SimulationProperties.mass2;
-		const commonDenominatorFactor: number = adjustedMass - SimulationProperties.mass2 * Math.cos(2 * this.arm1.angle - 2 * this.arm2.angle);
+		// https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
 
-		const arm1AngularAcceleration: number = this.calculateArm1AngularAcceleration(angleDelta, adjustedMass, commonDenominatorFactor);
-		const arm2AngularAcceleration: number = this.calculateArm2AngularAcceleration(angleDelta, commonDenominatorFactor);
+		const k1: DoublePendulumDerivatives = this.calculateDerivatives(this.state);
+		const k2: DoublePendulumDerivatives = this.calculateDerivatives(this.stepState(this.state, k1, deltaTime * 0.5));
+		const k3: DoublePendulumDerivatives = this.calculateDerivatives(this.stepState(this.state, k2, deltaTime * 0.5));
+		const k4: DoublePendulumDerivatives = this.calculateDerivatives(this.stepState(this.state, k3, deltaTime));
 
-		this.updateArm(this.arm1, arm1AngularAcceleration, deltaTime);
-		this.updateArm(this.arm2, arm2AngularAcceleration, deltaTime);
+		const scaledDeltaTime = deltaTime / 6.0;
+
+		this.state.angle1 += (k1.velocity1 + 2 * k2.velocity1 + 2 * k3.velocity1 + k4.velocity1) * scaledDeltaTime;
+		this.state.angle2 += (k1.velocity2 + 2 * k2.velocity2 + 2 * k3.velocity2 + k4.velocity2) * scaledDeltaTime;
+		this.state.velocity1 += (k1.acceleration1 + 2 * k2.acceleration1 + 2 * k3.acceleration1 + k4.acceleration1) * scaledDeltaTime;
+		this.state.velocity2 += (k1.acceleration2 + 2 * k2.acceleration2 + 2 * k3.acceleration2 + k4.acceleration2) * scaledDeltaTime;
+	
+		this.state.angle1 = DoublePendulum.normalizeAngle(this.state.angle1);
+		this.state.angle2 = DoublePendulum.normalizeAngle(this.state.angle2);
 	}
 
-	private updateArm(arm: PendulumArmState, angularAcceleration: number, deltaTime: number): void {
-		arm.angularVelocity += angularAcceleration * deltaTime;
-		arm.angle += arm.angularVelocity * deltaTime;
+	private stepState(initial: DoublePendulumState, derivatives: DoublePendulumDerivatives, deltaTime: number): DoublePendulumState {
+		return {
+			angle1: initial.angle1 + derivatives.velocity1 * deltaTime,
+			angle2: initial.angle2 + derivatives.velocity2 * deltaTime,
+			velocity1: initial.velocity1 + derivatives.acceleration1 * deltaTime,
+			velocity2: initial.velocity2 + derivatives.acceleration2 * deltaTime,
+		};
 	}
 
-	private calculateArm1AngularAcceleration(angleDelta: number, adjustedMass: number, commonDenominatorFactor: number): number {
-		const upperGravityPull: number = -SimulationProperties.gravity * adjustedMass * Math.sin(this.arm1.angle);
-		const lowerGravityDragOnUpper: number = -SimulationProperties.mass2 * SimulationProperties.gravity * Math.sin(this.arm1.angle - 2 * this.arm2.angle);
+	// https://en.wikipedia.org/wiki/Double_pendulum
+	// https://en.wikipedia.org/wiki/Lagrangian_mechanics
+	private calculateDerivatives({angle1, angle2, velocity1, velocity2}: DoublePendulumState): DoublePendulumDerivatives {
+		const mass1: number = SimulationProperties.mass1;
+		const mass2: number = SimulationProperties.mass2;
+		const length1: number = SimulationProperties.length1;
+		const length2: number = SimulationProperties.length2;
+		const gravity: number = SimulationProperties.gravity;
 
-		const centrifugalPull: number = -2 * Math.sin(angleDelta) * SimulationProperties.mass2 * (
-			(this.arm2.angularVelocity * this.arm2.angularVelocity * SimulationProperties.length2) +
-			(this.arm1.angularVelocity * this.arm1.angularVelocity * SimulationProperties.length1 * Math.cos(angleDelta))
-		);
+		const angleDelta: number = angle1 - angle2;
+		const totalMass: number = mass1 + mass2;
+		const adjustedMass: number = 2 * mass1 + mass2;
+		const denominator: number = adjustedMass - mass2 * Math.cos(2 * angle1 - 2 * angle2);
 
-		return (upperGravityPull + lowerGravityDragOnUpper + centrifugalPull) / (SimulationProperties.length1 * commonDenominatorFactor);
+		const upperGravityPull: number = -gravity * adjustedMass * Math.sin(angle1);
+		const lowerGravityDrag: number = -mass2 * gravity * Math.sin(angle1 - 2 * angle2);
+		const upperCentrifugalPull: number = -2 * Math.sin(angleDelta) * mass2 * ((velocity2 * velocity2 * length2) + (velocity1 * velocity1 * length1 * Math.cos(angleDelta)));
+		const acceleration1: number = (upperGravityPull + lowerGravityDrag + upperCentrifugalPull) / (length1 * denominator);
+
+		const couplingMultiplier: number = 2 * Math.sin(angleDelta);
+		const lowerCentrifugalPull: number = velocity1 * velocity1 * length1 * totalMass;
+		const lowerGravityPull: number = gravity * totalMass * Math.cos(angle1);
+		const coriolisEffect: number = velocity2 * velocity2 * length2 * mass2 * Math.cos(angleDelta);
+		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect)) / (length2 * denominator);
+
+		return {
+			velocity1: velocity1,
+			velocity2: velocity2,
+			acceleration1: acceleration1,
+			acceleration2: acceleration2,
+		};
 	}
 
-	private calculateArm2AngularAcceleration(angleDelta: number, commonDenominatorFactor: number): number {
-		const totalMass: number = SimulationProperties.mass1 + SimulationProperties.mass2;
-		const forceCouplingMultiplier = 2 * Math.sin(angleDelta);
+	static normalizeAngle(angle: number): number {
+		let a: number = angle % (2 * Math.PI);
 
-		const centrifugalAndGravityForce =
-			(this.arm1.angularVelocity * this.arm1.angularVelocity * SimulationProperties.length1 * totalMass) +
-			(SimulationProperties.gravity * totalMass * Math.cos(this.arm1.angle) +
-			(this.arm2.angularVelocity * this.arm2.angularVelocity * SimulationProperties.length2 * SimulationProperties.mass2 * Math.cos(angleDelta))
-		);
+		if(a > Math.PI) a -= 2 * Math.PI;
+		if(a < Math.PI) a += 2 * Math.PI;
 
-		return (forceCouplingMultiplier * centrifugalAndGravityForce) / (SimulationProperties.length2 * commonDenominatorFactor);
+		return a;
 	}
 }

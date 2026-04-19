@@ -25,11 +25,11 @@ export default class Renderer {
 		const positionX: number = originX + pendulum.originX;
 		const positionY: number = originY + pendulum.originY;
 
-		const x1: number = positionX + SimulationProperties.length1 * Math.sin(pendulum.arm1.angle) * METERS_TO_PIXELS;
-		const y1: number = positionY + SimulationProperties.length1 * Math.cos(pendulum.arm1.angle) * METERS_TO_PIXELS;
+		const x1: number = positionX + SimulationProperties.length1 * Math.sin(pendulum.state.angle1) * METERS_TO_PIXELS;
+		const y1: number = positionY + SimulationProperties.length1 * Math.cos(pendulum.state.angle1) * METERS_TO_PIXELS;
 
-		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.arm2.angle) * METERS_TO_PIXELS;
-		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.arm2.angle) * METERS_TO_PIXELS;
+		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.angle2) * METERS_TO_PIXELS;
+		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.angle2) * METERS_TO_PIXELS;
 
 		this.ctx.beginPath();
 		this.ctx.moveTo(positionX, positionY);
