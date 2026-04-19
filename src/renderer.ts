@@ -43,12 +43,12 @@ export default class Renderer {
 		this.ctx.moveTo(positionX, positionY);
 		this.ctx.lineTo(x1, y1);
 		this.ctx.lineTo(x2, y2);
-		this.ctx.strokeStyle = "#666";
+		this.ctx.strokeStyle = "#3b82f6";
 		this.ctx.lineWidth = 4;
 		this.ctx.stroke();
 
-		this.renderCircle(x1, y1, 5, "#00f");
-		this.renderCircle(x2, y2, 5, "#00f");
+		this.renderCircle(x1, y1, 7, "#f59e0b");
+		this.renderCircle(x2, y2, 7, "#f59e0b");
 	}
 
 	public renderCircle(x: number, y: number, radius: number, color: string): void {

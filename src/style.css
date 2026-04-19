@@ -1,5 +1,6 @@
 :root {
 	font-family: "sans-serif";
+	accent-color: #10b981;
 }
 
 html, body {
@@ -9,6 +10,15 @@ html, body {
 }
 
 body {
+	color: #2e3440;
+	background-color: #f7f9fc;
+	background-color: #fcfbf9; 
+  
+	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.2'/%3E%3C/svg%3E");
+  
+	background-repeat: repeat;
+	min-height: 100vh;
+
 	display: flex;
 	flex-direction: column;
 }
@@ -40,6 +50,12 @@ footer {
 	text-align: center;
 }
 
+a {
+	font-weight: bold;
+	text-decoration: none;
+	color: 	#10b981;
+}
+
 @media only screen and (max-width: 1080px) {
 	main {
 		flex-direction: column;
@@ -49,7 +65,8 @@ footer {
 #simulation-canvas {
 	max-width: 600px;
 	width: 100%;
-	border: 2px solid #222;
+	border: 2px solid rgba(0, 0, 0, 0.3);
+	border-radius: 12px;
 }
 
 #controls-container * {
