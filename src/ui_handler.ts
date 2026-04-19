@@ -12,7 +12,7 @@ function handleGravityInput(): void {
 	const gravityInput: HTMLInputElement = document.querySelector<HTMLInputElement>("#gravity-input") as HTMLInputElement;
 	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>("#gravity-value-display") as HTMLSpanElement;
 
-	gravityInput.addEventListener("change", () => {
+	gravityInput.addEventListener("input", () => {
 		SimulationProperties.gravity = gravityInput.valueAsNumber;
 		valueDisplay.textContent = `${SimulationProperties.gravity}m/s`;
 	});
@@ -23,7 +23,7 @@ function handleMassInput(isArm1: boolean): void {
 	const input: HTMLInputElement = document.querySelector<HTMLInputElement>(query) as HTMLInputElement;
 	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>(`${query} ~ .value-display`) as HTMLSpanElement
 
-	input.addEventListener("change", () => {
+	input.addEventListener("input", () => {
 		const value: number = Math.max(1, Math.min(10, input.valueAsNumber));
 
 		if(isArm1)
@@ -40,7 +40,7 @@ function handleLengthInput(isArm1: boolean): void {
 	const input: HTMLInputElement = document.querySelector<HTMLInputElement>(query) as HTMLInputElement;
 	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>(`${query} ~ .value-display`) as HTMLSpanElement
 
-	input.addEventListener("change", () => {
+	input.addEventListener("input", () => {
 		const value: number = Math.max(0.1, Math.min(10, input.valueAsNumber));
 
 		if(isArm1)
