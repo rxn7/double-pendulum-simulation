@@ -20,7 +20,7 @@ export default class Renderer {
 	}
 
 	public clear(): void {
-		this.ctx.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
 	public renderPendulum(pendulum: DoublePendulum): void {

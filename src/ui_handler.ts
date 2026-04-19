@@ -2,6 +2,7 @@ import { SimulationProperties } from "./simulation_properties"
 
 document.addEventListener('DOMContentLoaded', () => {
 	handleGravityInput();
+	handlePivotFrictionInput();
 	handleMassInput(true);
 	handleMassInput(false);
 	handleLengthInput(true);
@@ -9,19 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function handleGravityInput(): void {
-	const gravityInput: HTMLInputElement = document.querySelector<HTMLInputElement>("#gravity-input") as HTMLInputElement;
-	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>("#gravity-value-display") as HTMLSpanElement;
+	const [input, valueDisplay] = getInputAndDisplay("gravity-input");
 
-	gravityInput.addEventListener("input", () => {
-		SimulationProperties.gravity = gravityInput.valueAsNumber;
+	input.addEventListener("input", () => {
+		SimulationProperties.gravity = input.valueAsNumber;
 		valueDisplay.textContent = `${SimulationProperties.gravity}m/s`;
 	});
 }
 
+function handlePivotFrictionInput(): void {
+	const [input, valueDisplay] = getInputAndDisplay("friction-input");
+
+	input.addEventListener("input", () => {
+		SimulationProperties.pivotFriction = input.valueAsNumber;
+		valueDisplay.textContent = `${SimulationProperties.pivotFriction}N⋅m⋅s/rad`;
+	});
+}
+
 function handleMassInput(isArm1: boolean): void {
-	const query = isArm1 ? "#mass1-input" : "#mass2-input";
-	const input: HTMLInputElement = document.querySelector<HTMLInputElement>(query) as HTMLInputElement;
-	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>(`${query} ~ .value-display`) as HTMLSpanElement
+	const [input, valueDisplay] = getInputAndDisplay(isArm1 ? "mass1-input" : "mass2-input");
 
 	input.addEventListener("input", () => {
 		const value: number = Math.max(1, Math.min(10, input.valueAsNumber));
@@ -36,9 +43,7 @@ function handleMassInput(isArm1: boolean): void {
 }
 
 function handleLengthInput(isArm1: boolean): void {
-	const query = isArm1 ? "#length1-input" : "#length2-input";
-	const input: HTMLInputElement = document.querySelector<HTMLInputElement>(query) as HTMLInputElement;
-	const valueDisplay: HTMLSpanElement = document.querySelector<HTMLSpanElement>(`${query} ~ .value-display`) as HTMLSpanElement
+	const [input, valueDisplay] = getInputAndDisplay(isArm1 ? "length1-input" : "length2-input");
 
 	input.addEventListener("input", () => {
 		const value: number = Math.max(0.1, Math.min(10, input.valueAsNumber));
@@ -50,4 +55,10 @@ function handleLengthInput(isArm1: boolean): void {
 
 		valueDisplay.textContent = `${value}m`;
 	});
+}
+
+function getInputAndDisplay(inputId: string): [HTMLInputElement, HTMLSpanElement] {
+	const input: HTMLInputElement = document.getElementById(inputId) as HTMLInputElement;
+	const display: HTMLSpanElement = document.querySelector(`#${inputId} ~ .value-display`) as HTMLSpanElement;
+	return [input, display];
 }

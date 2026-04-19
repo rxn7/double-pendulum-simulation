@@ -63,22 +63,26 @@ export class DoublePendulum {
 		const length1: number = SimulationProperties.length1;
 		const length2: number = SimulationProperties.length2;
 		const gravity: number = SimulationProperties.gravity;
+		const pivotFriction: number = SimulationProperties.pivotFriction;
 
 		const angleDelta: number = angle1 - angle2;
 		const totalMass: number = mass1 + mass2;
 		const adjustedMass: number = 2 * mass1 + mass2;
 		const denominator: number = adjustedMass - mass2 * Math.cos(2 * angle1 - 2 * angle2);
+		const frictionTorque1: number = -pivotFriction * velocity1;
+		const frictionTorque2: number = -pivotFriction * (velocity2 - velocity1);
 
 		const upperGravityPull: number = -gravity * adjustedMass * Math.sin(angle1);
 		const lowerGravityDrag: number = -mass2 * gravity * Math.sin(angle1 - 2 * angle2);
 		const upperCentrifugalPull: number = -2 * Math.sin(angleDelta) * mass2 * ((velocity2 * velocity2 * length2) + (velocity1 * velocity1 * length1 * Math.cos(angleDelta)));
-		const acceleration1: number = (upperGravityPull + lowerGravityDrag + upperCentrifugalPull) / (length1 * denominator);
 
 		const couplingMultiplier: number = 2 * Math.sin(angleDelta);
 		const lowerCentrifugalPull: number = velocity1 * velocity1 * length1 * totalMass;
 		const lowerGravityPull: number = gravity * totalMass * Math.cos(angle1);
 		const coriolisEffect: number = velocity2 * velocity2 * length2 * mass2 * Math.cos(angleDelta);
-		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect)) / (length2 * denominator);
+
+		const acceleration1: number = (upperGravityPull + lowerGravityDrag + upperCentrifugalPull) / (length1 * denominator) + frictionTorque1 - frictionTorque2;
+		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect)) / (length2 * denominator) + frictionTorque2;
 
 		return {
 			velocity1: velocity1,

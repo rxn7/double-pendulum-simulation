@@ -1,5 +1,6 @@
 export namespace SimulationProperties {
 	export var gravity: number = 9.81;
+	export var pivotFriction: number = 0.02;
 
 	export var mass1: number = 2.0;
 	export var mass2: number = 2.0;
