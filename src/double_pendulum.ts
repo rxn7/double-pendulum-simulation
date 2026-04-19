@@ -27,8 +27,9 @@ export class DoublePendulum {
 	}
 
 	public update(deltaTime: number): void {
-		// https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
+		this.checkAndRecoverState();
 
+		// https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
 		const k1: DoublePendulumDerivatives = this.calculateDerivatives(this.state);
 		const k2: DoublePendulumDerivatives = this.calculateDerivatives(this.stepState(this.state, k1, deltaTime * 0.5));
 		const k3: DoublePendulumDerivatives = this.calculateDerivatives(this.stepState(this.state, k2, deltaTime * 0.5));
@@ -85,6 +86,21 @@ export class DoublePendulum {
 			acceleration1: acceleration1,
 			acceleration2: acceleration2,
 		};
+	}
+
+	private checkAndRecoverState() {
+		const hasExploded: boolean = Object.values(this.state).some((v: number) => isNaN(v) || !isFinite(v));
+
+		if(hasExploded) {
+			this.state = {
+				angle1: Math.PI / 2, 
+				angle2: 0,
+				velocity1: 0,
+				velocity2: 0
+			}
+
+			alert("Wystąpił błąd w symulacji. Symulacja została zrestartowana do bezpiecznego stanu.");
+		}
 	}
 
 	static normalizeAngle(angle: number): number {
