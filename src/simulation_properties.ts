@@ -1,4 +1,6 @@
 export namespace SimulationProperties {
+	export var isPaused: boolean = false;
+
 	export var gravity: number = 9.81;
 	export var pivotFriction: number = 0.02;
 

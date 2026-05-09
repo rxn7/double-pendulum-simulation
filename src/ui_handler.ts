@@ -1,6 +1,7 @@
 import { SimulationProperties } from "./simulation_properties"
 
 document.addEventListener('DOMContentLoaded', () => {
+	handlePauseButton();
 	handleGravityInput();
 	handlePivotFrictionInput();
 	handleMassInput(true);
@@ -8,6 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
 	handleLengthInput(true);
 	handleLengthInput(false);
 });
+
+function handlePauseButton(): void {
+	const btn: HTMLButtonElement  = document.getElementById("pause-btn") as HTMLButtonElement;
+
+	btn.addEventListener("click", () => {
+		console.log("test");
+		SimulationProperties.isPaused = !SimulationProperties.isPaused;
+		btn.textContent = SimulationProperties.isPaused ? "Wznów symulację" : "Zatrzymaj symulację";
+	});
+}
 
 function handleGravityInput(): void {
 	const [input, valueDisplay] = getInputAndDisplay("gravity-input");

@@ -4,7 +4,7 @@ import { SimulationProperties } from "./simulation_properties";
 export default class Renderer {
 	private ctx: CanvasRenderingContext2D;
 
-	constructor(private readonly canvas: HTMLCanvasElement) {
+	constructor(public readonly canvas: HTMLCanvasElement) {
 		this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
 		if(!this.ctx) {
@@ -12,11 +12,13 @@ export default class Renderer {
 			return;
 		}
 
-		window.addEventListener("resize", () => {
-			const canvasStyle: CSSStyleDeclaration = getComputedStyle(canvas);
-			canvas.width = parseInt(canvasStyle.width);
-			canvas.height = parseInt(canvasStyle.height);
-		});
+		this.handleResize();
+		window.addEventListener("resize", this.handleResize.bind(this));
+	}
+
+	public getPixelsPerMeter(): number {
+		const totalLength = SimulationProperties.length1 + SimulationProperties.length2;
+		return (Math.min(this.canvas.width, this.canvas.height) / totalLength) * 0.45;
 	}
 
 	public clear(): void {
@@ -24,23 +26,19 @@ export default class Renderer {
 	}
 
 	public renderPendulum(pendulum: DoublePendulum): void {
-		const totalLength = SimulationProperties.length1 + SimulationProperties.length2;
-		const metersToPixels: number = Math.max(this.canvas.clientWidth, this.canvas.clientHeight) / totalLength * 0.5 * 0.99;
+		const scale: number = this.getPixelsPerMeter();
 	
-		const originX: number = this.canvas.clientWidth * 0.5;
-		const originY: number = this.canvas.clientHeight * 0.5;
+		const originX: number = this.canvas.width * 0.5 + pendulum.originX;
+		const originY: number = this.canvas.height * 0.5 + pendulum.originY;
 
-		const positionX: number = originX + pendulum.originX;
-		const positionY: number = originY + pendulum.originY;
+		const x1: number = originX + SimulationProperties.length1 * Math.sin(pendulum.state.angle1) * scale;
+		const y1: number = originY + SimulationProperties.length1 * Math.cos(pendulum.state.angle1) * scale;
 
-		const x1: number = positionX + SimulationProperties.length1 * Math.sin(pendulum.state.angle1) * metersToPixels;
-		const y1: number = positionY + SimulationProperties.length1 * Math.cos(pendulum.state.angle1) * metersToPixels;
-
-		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.angle2) * metersToPixels;
-		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.angle2) * metersToPixels;
+		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.angle2) * scale;
+		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.angle2) * scale;
 
 		this.ctx.beginPath();
-		this.ctx.moveTo(positionX, positionY);
+		this.ctx.moveTo(originX, originY);
 		this.ctx.lineTo(x1, y1);
 		this.ctx.lineTo(x2, y2);
 		this.ctx.strokeStyle = "#3b82f6";
@@ -56,5 +54,10 @@ export default class Renderer {
 		this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
 		this.ctx.fillStyle = color;
 		this.ctx.fill();
+	}
+
+	private handleResize(): void {
+		this.canvas.width = this.canvas.clientWidth;
+		this.canvas.height = this.canvas.clientHeight;
 	}
 }
