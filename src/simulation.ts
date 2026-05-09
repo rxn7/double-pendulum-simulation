@@ -32,13 +32,18 @@ export default class Simulation {
 		this.accumulator += frameTime;
 		while(this.accumulator >= FIXED_TIME_STEP) {
 			if(!SimulationProperties.isPaused) {
-				this.pendulum.update(FIXED_TIME_STEP);
+				this.pendulum.simulationStep(FIXED_TIME_STEP);
 			}
 			
 			this.accumulator -= FIXED_TIME_STEP;
 		}
 
+		if(!SimulationProperties.isPaused) {
+			this.pendulum.update();
+		}
+
 		this.renderer.clear();
+		this.renderer.renderPendulumHistory(this.pendulum);
 		this.renderer.renderPendulum(this.pendulum);
 
 		window.requestAnimationFrame(this.step);
@@ -46,8 +51,6 @@ export default class Simulation {
 
 	private onMouseDown(e: MouseEvent): void {
 		const { mouseX, mouseY } = this.getMouseXY(e);
-
-		console.log(mouseX, mouseY);
 
 		const { x1, y1, x2, y2 } = this.pendulum.getPositions();
 		const scale: number = this.renderer.getPixelsPerMeter();

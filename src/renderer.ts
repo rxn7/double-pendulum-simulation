@@ -1,4 +1,4 @@
-import { DoublePendulum } from "./double_pendulum";
+import { HistoryEntry, DoublePendulum } from "./double_pendulum";
 import { SimulationProperties } from "./simulation_properties";
 
 export default class Renderer {
@@ -45,8 +45,30 @@ export default class Renderer {
 		this.ctx.lineWidth = 4;
 		this.ctx.stroke();
 
-		this.renderCircle(x1, y1, 7, "#f59e0b");
-		this.renderCircle(x2, y2, 7, "#f59e0b");
+		this.renderCircle(x1, y1, 5 + SimulationProperties.mass1 * 0.5, "#10b981");
+		this.renderCircle(x2, y2, 5 + SimulationProperties.mass2 * 0.5, "#10b981");
+	}
+
+	public renderPendulumHistory(pendulum: DoublePendulum): void {
+		if(pendulum.history.length < 2) {
+			return;
+		}
+
+		const scale: number = this.getPixelsPerMeter();
+		const originX: number = this.canvas.width * 0.5;
+		const originY: number = this.canvas.height * 0.5;
+
+		this.ctx.beginPath();
+
+		pendulum.history.forEach((entry: HistoryEntry) => {
+			const x: number = originX + entry.x * scale;
+			const y: number = originY + entry.y * scale;
+			this.ctx.lineTo(x, y);
+		});
+
+		this.ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+		this.ctx.lineWidth = 1;
+		this.ctx.stroke();
 	}
 
 	public renderCircle(x: number, y: number, radius: number, color: string): void {

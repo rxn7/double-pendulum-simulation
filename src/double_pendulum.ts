@@ -6,6 +6,14 @@ export enum DragTarget {
 	Mass2
 };
 
+const MAX_HISTORY_SIZE: number = 500;
+
+export interface HistoryEntry {
+	time: number;
+	x: number;
+	y: number;
+};
+
 export interface DoublePendulumState {
 	angle1: number;
 	angle2: number;
@@ -17,10 +25,11 @@ export interface DoublePendulumDerivatives {
 	velocity1: number;
 	velocity2: number;
 	acceleration1: number;
-	acceleration2: number;
+		acceleration2: number;
 };
 
 export class DoublePendulum {
+	public history: HistoryEntry[] = []
 	public dragTarget: DragTarget = DragTarget.None;
 	public state: DoublePendulumState;
 
@@ -43,7 +52,11 @@ export class DoublePendulum {
 		return { x1, y1, x2, y2 };
 	}
 
-	public update(deltaTime: number): void {
+	public update(): void {
+		this.pushToHistory();
+	}
+
+	public simulationStep(deltaTime: number): void {
 		this.checkAndRecoverState();
 		this.updatePhysics(deltaTime);
 		this.normalizeAngles();
@@ -154,6 +167,22 @@ export class DoublePendulum {
 			}
 
 			alert("Wystąpił błąd w symulacji. Symulacja została zrestartowana do bezpiecznego stanu.");
+		}
+	}
+
+	private pushToHistory() {
+		const { x2, y2 } = this.getPositions();
+
+		const entry: HistoryEntry = {
+			time: performance.now(),
+			x: x2,
+			y: y2,
+		};
+
+		this.history.push(entry);
+
+		if(this.history.length > MAX_HISTORY_SIZE) {
+			this.history.shift();
 		}
 	}
 
