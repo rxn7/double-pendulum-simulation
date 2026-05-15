@@ -1,6 +1,6 @@
 import { SimulationProperties } from "./simulation_properties";
 
-export enum DragTarget {
+export enum DoublePendulumPart {
 	None,
 	Mass1,
 	Mass2
@@ -30,7 +30,7 @@ export interface DoublePendulumDerivatives {
 
 export class DoublePendulum {
 	public history: HistoryEntry[] = []
-	public dragTarget: DragTarget = DragTarget.None;
+	public dragTarget: DoublePendulumPart = DoublePendulumPart.None;
 	public state: DoublePendulumState;
 
 	constructor(public originX: number, public originY: number, angle1: number, angle2: number) {
@@ -62,17 +62,17 @@ export class DoublePendulum {
 		this.normalizeAngles();
 	}
 
-	public handleDrag(dragTarget: DragTarget, mouseX: number, mouseY: number): void {
-		switch(dragTarget) {
-			case DragTarget.None:
+	public handleDrag(mouseX: number, mouseY: number): void {
+		switch(this.dragTarget) {
+			case DoublePendulumPart.None:
 				break;
 
-			case DragTarget.Mass1:
+			case DoublePendulumPart.Mass1:
 				this.state.angle1 = Math.atan2(mouseX - this.originX, mouseY - this.originY);
 				this.state.velocity1 = 0.0; // TODO: inherit mouse velocity
 				break;
 
-			case DragTarget.Mass2:
+			case DoublePendulumPart.Mass2:
 				const { x1, y1 } = this.getPositions();
 				this.state.angle2 = Math.atan2(mouseX - x1, mouseY - y1);
 				this.state.velocity2 = 0.0; // TODO: inherit mouse velocity
@@ -89,14 +89,14 @@ export class DoublePendulum {
 
 		const scaledDeltaTime = deltaTime / 6.0;
 
-		if(this.dragTarget !== DragTarget.Mass1) {
+		if(this.dragTarget !== DoublePendulumPart.Mass1) {
 			this.state.angle1 += (k1.velocity1 + 2 * k2.velocity1 + 2 * k3.velocity1 + k4.velocity1) * scaledDeltaTime;
 			this.state.velocity1 += (k1.acceleration1 + 2 * k2.acceleration1 + 2 * k3.acceleration1 + k4.acceleration1) * scaledDeltaTime;
 		} else {
 			this.state.velocity1 = 0.0;
 		}
 
-		if(this.dragTarget !== DragTarget.Mass2) {
+		if(this.dragTarget !== DoublePendulumPart.Mass2) {
 			this.state.angle2 += (k1.velocity2 + 2 * k2.velocity2 + 2 * k3.velocity2 + k4.velocity2) * scaledDeltaTime;
 			this.state.velocity2 += (k1.acceleration2 + 2 * k2.acceleration2 + 2 * k3.acceleration2 + k4.acceleration2) * scaledDeltaTime;
 		} else {

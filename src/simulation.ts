@@ -1,4 +1,4 @@
-import { DoublePendulum, DragTarget } from "./double_pendulum";
+import { DoublePendulum, DoublePendulumPart } from "./double_pendulum";
 import { SimulationProperties } from "./simulation_properties";
 import Renderer from "./renderer";
 
@@ -7,6 +7,10 @@ const FIXED_TIME_STEP: number = 1.0 / 120; // 120hz
 
 export default class Simulation {
 	public pendulum: DoublePendulum;
+	private hoverTarget: DoublePendulumPart = DoublePendulumPart.None; 
+	private isDragging: boolean = false;
+	private mouseX: number = 0;
+	private mouseY: number = 0;
 	private lastStepTime: DOMHighResTimeStamp = 0;
 	private accumulator: number = 0;
 
@@ -42,47 +46,60 @@ export default class Simulation {
 			this.pendulum.update();
 		}
 
+		this.handleDrag();
+
 		this.renderer.clear();
 		this.renderer.renderPendulumHistory(this.pendulum);
 		this.renderer.renderPendulum(this.pendulum);
 
 		window.requestAnimationFrame(this.step);
 	};
+	
+	private handleDrag(): void {
+		if(!this.isDragging) {
+			const { x1, y1, x2, y2 } = this.pendulum.getPositions();
+			const scale: number = this.renderer.getPixelsPerMeter();
+
+			const dist1 = Math.hypot(this.mouseX - x1, this.mouseY - y1);
+			const dist2 = Math.hypot(this.mouseX - x2, this.mouseY - y2);
+
+			if(dist1 <= dist2 && dist1 <= DRAG_DISTANCE_LIMIT / scale) {
+				this.hoverTarget = DoublePendulumPart.Mass1;
+			} else if(dist2 <= dist1 && dist2 <= DRAG_DISTANCE_LIMIT / scale) {
+				this.hoverTarget = DoublePendulumPart.Mass2;
+			} else {
+				this.hoverTarget = DoublePendulumPart.None;
+			}
+		}
+
+		if(this.hoverTarget !== DoublePendulumPart.None || this.isDragging) {
+			this.renderer.canvas.style.cursor = "pointer";
+		} else {
+			this.renderer.canvas.style.cursor = "default";
+		}
+
+		if(this.isDragging && this.pendulum.dragTarget !== DoublePendulumPart.None) {
+			this.pendulum.handleDrag(this.mouseX, this.mouseY);
+		}
+	}
 
 	private onMouseDown(e: MouseEvent): void {
-		const { mouseX, mouseY } = this.getMouseXY(e);
-
-		const { x1, y1, x2, y2 } = this.pendulum.getPositions();
-		const scale: number = this.renderer.getPixelsPerMeter();
-
-		const dist1 = Math.hypot(mouseX - x1,  mouseY - y1);
-		const dist2 = Math.hypot(mouseX - x2,  mouseY - y2);
-
-		if(dist1 <= dist2 && dist1 <= DRAG_DISTANCE_LIMIT / scale) {
-			this.pendulum.dragTarget = DragTarget.Mass1;
-		} else if(dist2 <= dist1 && dist2 <= DRAG_DISTANCE_LIMIT / scale) {
-			this.pendulum.dragTarget = DragTarget.Mass2;
-		} else {
-			this.pendulum.dragTarget = DragTarget.None;
+		if(this.hoverTarget != DoublePendulumPart.None) {
+			this.isDragging = true;
+			this.pendulum.dragTarget = this.hoverTarget;
 		}
 	}
 
 	private onMouseUp(e: MouseEvent): void {
-		this.pendulum.dragTarget = DragTarget.None;
+		this.pendulum.dragTarget = DoublePendulumPart.None;
+		this.isDragging = false;
 	}
 
 	private onMouseMove(e: MouseEvent): void {
-		const { mouseX, mouseY } = this.getMouseXY(e);
-		this.pendulum.handleDrag(this.pendulum.dragTarget, mouseX, mouseY);
-	}
-
-	private getMouseXY(e: MouseEvent): { mouseX: number, mouseY: number } {
 		const canvasRect: DOMRect = this.renderer.canvas.getBoundingClientRect();
 		const scale: number = this.renderer.getPixelsPerMeter();
 
-		const mouseX: number = (e.clientX - canvasRect.left - this.renderer.canvas.width * 0.5) / scale;
-		const mouseY: number = (e.clientY - canvasRect.top - this.renderer.canvas.height * 0.5) / scale;
-
-		return { mouseX, mouseY };
+		this.mouseX = (e.clientX - canvasRect.left - this.renderer.canvas.width * 0.5) / scale;
+		this.mouseY = (e.clientY - canvasRect.top - this.renderer.canvas.height * 0.5) / scale;
 	}
 }
