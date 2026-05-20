@@ -31,11 +31,11 @@ export default class Renderer {
 		const originX: number = this.canvas.width * 0.5 + pendulum.originX;
 		const originY: number = this.canvas.height * 0.5 + pendulum.originY;
 
-		const x1: number = originX + SimulationProperties.length1 * Math.sin(pendulum.state.angle1) * scale;
-		const y1: number = originY + SimulationProperties.length1 * Math.cos(pendulum.state.angle1) * scale;
+		const x1: number = originX + SimulationProperties.length1 * Math.sin(pendulum.state.mass1.angle) * scale;
+		const y1: number = originY + SimulationProperties.length1 * Math.cos(pendulum.state.mass1.angle) * scale;
 
-		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.angle2) * scale;
-		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.angle2) * scale;
+		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.mass2.angle) * scale;
+		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.mass2.angle) * scale;
 
 		this.ctx.beginPath();
 		this.ctx.moveTo(originX, originY);

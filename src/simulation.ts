@@ -46,7 +46,7 @@ export default class Simulation {
 			this.pendulum.update();
 		}
 
-		this.handleDrag();
+		this.handleDrag(frameTime);
 
 		this.renderer.clear();
 		this.renderer.renderPendulumHistory(this.pendulum);
@@ -55,7 +55,7 @@ export default class Simulation {
 		window.requestAnimationFrame(this.step);
 	};
 	
-	private handleDrag(): void {
+	private handleDrag(deltaTime: number): void {
 		if(!this.isDragging) {
 			const { x1, y1, x2, y2 } = this.pendulum.getPositions();
 			const scale: number = this.renderer.getPixelsPerMeter();
@@ -79,11 +79,11 @@ export default class Simulation {
 		}
 
 		if(this.isDragging && this.pendulum.dragTarget !== DoublePendulumPart.None) {
-			this.pendulum.handleDrag(this.mouseX, this.mouseY);
+			this.pendulum.handleDrag(this.mouseX, this.mouseY, deltaTime);
 		}
 	}
 
-	private onMouseDown(e: MouseEvent): void {
+	private onMouseDown(_: MouseEvent): void {
 		if(this.hoverTarget != DoublePendulumPart.None) {
 			this.isDragging = true;
 			this.pendulum.dragTarget = this.hoverTarget;

@@ -7,6 +7,7 @@ export enum DoublePendulumPart {
 };
 
 const MAX_HISTORY_SIZE: number = 500;
+const MAX_DRAG_VELOCITY: number = 5.0; // Radians per second
 
 export interface HistoryEntry {
 	time: number;
@@ -14,18 +15,24 @@ export interface HistoryEntry {
 	y: number;
 };
 
+export interface MassState {
+	angle: number;
+	velocity: number;
+}
+
 export interface DoublePendulumState {
-	angle1: number;
-	angle2: number;
-	velocity1: number;
-	velocity2: number;
+	mass1: MassState;
+	mass2: MassState;
 };
 
+export interface MassDerivatives {
+	velocity: number;
+	acceleration: number;
+}
+
 export interface DoublePendulumDerivatives {
-	velocity1: number;
-	velocity2: number;
-	acceleration1: number;
-		acceleration2: number;
+	mass1: MassDerivatives;
+	mass2: MassDerivatives;
 };
 
 export class DoublePendulum {
@@ -35,19 +42,23 @@ export class DoublePendulum {
 
 	constructor(public originX: number, public originY: number, angle1: number, angle2: number) {
 		this.state = {
-			angle1: angle1, 
-			angle2: angle2,
-			velocity1: 0,
-			velocity2: 0
+			mass1: {
+				angle: angle1,
+				velocity: 0
+			},
+			mass2: {
+				angle: angle2,
+				velocity: 0
+			},
 		}
 	}
 
 	public getPositions(): { x1: number, y1: number, x2: number, y2: number } {
-		const x1: number = this.originX + SimulationProperties.length1 * Math.sin(this.state.angle1);
-		const y1: number = this.originY + SimulationProperties.length1 * Math.cos(this.state.angle1);
+		const x1: number = this.originX + SimulationProperties.length1 * Math.sin(this.state.mass1.angle);
+		const y1: number = this.originY + SimulationProperties.length1 * Math.cos(this.state.mass1.angle);
 
-		const x2: number = x1 + SimulationProperties.length2 * Math.sin(this.state.angle2);
-		const y2: number = y1 + SimulationProperties.length2 * Math.cos(this.state.angle2);
+		const x2: number = x1 + SimulationProperties.length2 * Math.sin(this.state.mass2.angle);
+		const y2: number = y1 + SimulationProperties.length2 * Math.cos(this.state.mass2.angle);
 
 		return { x1, y1, x2, y2 };
 	}
@@ -62,21 +73,35 @@ export class DoublePendulum {
 		this.normalizeAngles();
 	}
 
-	public handleDrag(mouseX: number, mouseY: number): void {
+	public handleDrag(mouseX: number, mouseY: number, deltaTime: number): void {
+		if(deltaTime <= 0) {
+			return;
+		}
+
+		const handleDragMass = (x: number, y: number, mass: MassState): void => {
+			const targetAngle: number = Math.atan2(mouseX - x, mouseY - y);
+			const angleDelta: number = DoublePendulum.normalizeAngle(targetAngle - mass.angle);
+
+			mass.angle = targetAngle;
+
+			const rawVelocity: number = angleDelta / deltaTime;
+			mass.velocity = Math.max(-MAX_DRAG_VELOCITY, Math.min(MAX_DRAG_VELOCITY, rawVelocity));
+		}
+
 		switch(this.dragTarget) {
 			case DoublePendulumPart.None:
 				break;
 
-			case DoublePendulumPart.Mass1:
-				this.state.angle1 = Math.atan2(mouseX - this.originX, mouseY - this.originY);
-				this.state.velocity1 = 0.0; // TODO: inherit mouse velocity
+			case DoublePendulumPart.Mass1: {
+				handleDragMass(this.originX, this.originY, this.state.mass1);
 				break;
+			}
 
-			case DoublePendulumPart.Mass2:
+			case DoublePendulumPart.Mass2: {
 				const { x1, y1 } = this.getPositions();
-				this.state.angle2 = Math.atan2(mouseX - x1, mouseY - y1);
-				this.state.velocity2 = 0.0; // TODO: inherit mouse velocity
+				handleDragMass(x1, y1, this.state.mass2);
 				break;
+			}
 		}
 	}
 
@@ -89,44 +114,53 @@ export class DoublePendulum {
 
 		const scaledDeltaTime = deltaTime / 6.0;
 
-		if(this.dragTarget !== DoublePendulumPart.Mass1) {
-			this.state.angle1 += (k1.velocity1 + 2 * k2.velocity1 + 2 * k3.velocity1 + k4.velocity1) * scaledDeltaTime;
-			this.state.velocity1 += (k1.acceleration1 + 2 * k2.acceleration1 + 2 * k3.acceleration1 + k4.acceleration1) * scaledDeltaTime;
-		} else {
-			this.state.velocity1 = 0.0;
+		const updateMassPhysics = (mass: MassState, k1: MassDerivatives, k2: MassDerivatives, k3: MassDerivatives, k4: MassDerivatives): void => {
+			mass.angle += (k1.velocity + 2 * k2.velocity + 2 * k3.velocity + k4.velocity) * scaledDeltaTime;
+			mass.velocity += (k1.acceleration + 2 * k2.acceleration + 2 * k3.acceleration + k4.acceleration) * scaledDeltaTime;
 		}
 
+		if(this.dragTarget !== DoublePendulumPart.Mass1) {
+			updateMassPhysics(this.state.mass1, k1.mass1, k2.mass1, k3.mass1, k4.mass1);
+		} 
+
 		if(this.dragTarget !== DoublePendulumPart.Mass2) {
-			this.state.angle2 += (k1.velocity2 + 2 * k2.velocity2 + 2 * k3.velocity2 + k4.velocity2) * scaledDeltaTime;
-			this.state.velocity2 += (k1.acceleration2 + 2 * k2.acceleration2 + 2 * k3.acceleration2 + k4.acceleration2) * scaledDeltaTime;
-		} else {
-			this.state.velocity2 = 0.0;
+			updateMassPhysics(this.state.mass2, k1.mass2, k2.mass2, k3.mass2, k4.mass2);
 		}
 	}
 
 	private normalizeAngles(): void {
-		this.state.angle1 = DoublePendulum.normalizeAngle(this.state.angle1);
-		this.state.angle2 = DoublePendulum.normalizeAngle(this.state.angle2);
+		this.state.mass1.angle = DoublePendulum.normalizeAngle(this.state.mass1.angle);
+		this.state.mass2.angle = DoublePendulum.normalizeAngle(this.state.mass2.angle);
 	}
 
 	private stepState(initial: DoublePendulumState, derivatives: DoublePendulumDerivatives, deltaTime: number): DoublePendulumState {
+		const stepMass = (i: MassState, d: MassDerivatives): MassState => {
+			return {
+				angle: i.angle + d.velocity * deltaTime,
+				velocity: i.velocity + d.acceleration * deltaTime
+			};
+		};
+
 		return {
-			angle1: initial.angle1 + derivatives.velocity1 * deltaTime,
-			angle2: initial.angle2 + derivatives.velocity2 * deltaTime,
-			velocity1: initial.velocity1 + derivatives.acceleration1 * deltaTime,
-			velocity2: initial.velocity2 + derivatives.acceleration2 * deltaTime,
+			mass1: stepMass(initial.mass1, derivatives.mass1),
+			mass2: stepMass(initial.mass2, derivatives.mass2),
 		};
 	}
 
 	// https://en.wikipedia.org/wiki/Double_pendulum
 	// https://en.wikipedia.org/wiki/Lagrangian_mechanics
-	private calculateDerivatives({angle1, angle2, velocity1, velocity2}: DoublePendulumState): DoublePendulumDerivatives {
+	private calculateDerivatives(state: DoublePendulumState): DoublePendulumDerivatives {
 		const mass1: number = SimulationProperties.mass1;
 		const mass2: number = SimulationProperties.mass2;
 		const length1: number = SimulationProperties.length1;
 		const length2: number = SimulationProperties.length2;
 		const gravity: number = SimulationProperties.gravity;
 		const pivotFriction: number = SimulationProperties.pivotFriction;
+
+		const angle1: number = state.mass1.angle;
+		const angle2: number = state.mass2.angle;
+		const velocity1: number = state.mass1.velocity;
+		const velocity2: number = state.mass2.velocity;
 
 		const angleDelta: number = angle1 - angle2;
 		const totalMass: number = mass1 + mass2;
@@ -148,22 +182,36 @@ export class DoublePendulum {
 		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect)) / (length2 * denominator) + frictionTorque2;
 
 		return {
-			velocity1: velocity1,
-			velocity2: velocity2,
-			acceleration1: acceleration1,
-			acceleration2: acceleration2,
+			mass1: {
+				acceleration: acceleration1,
+				velocity: velocity1,
+			},
+			mass2: {
+				acceleration: acceleration2,
+				velocity: velocity2,
+			}
 		};
 	}
 
 	private checkAndRecoverState() {
-		const hasExploded: boolean = Object.values(this.state).some((v: number) => isNaN(v) || !isFinite(v));
+		const values: number[] = [
+			this.state.mass1.angle, 
+			this.state.mass1.velocity,
+			this.state.mass2.angle, 
+			this.state.mass2.velocity,
+		];
+		const hasExploded: boolean = Object.values(values).some((v: number) => isNaN(v) || !isFinite(v));
 
 		if(hasExploded) {
 			this.state = {
-				angle1: Math.PI / 2, 
-				angle2: 0,
-				velocity1: 0,
-				velocity2: 0
+				mass1: {
+					angle: Math.PI / 2, 
+					velocity: 0,
+				},
+				mass2: {
+					angle: 0,
+					velocity: 0,
+				}
 			}
 
 			alert("Wystąpił błąd w symulacji. Symulacja została zrestartowana do bezpiecznego stanu.");
