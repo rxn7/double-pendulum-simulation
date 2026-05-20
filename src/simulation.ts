@@ -21,7 +21,7 @@ export default class Simulation {
 
 		this.step = this.step.bind(this); // bind this so the animationFrame callback works
 
-		this.pendulum = new DoublePendulum(0, 0, 45, -45);
+		this.pendulum = new DoublePendulum(0, 0, Math.PI - 0.01, Math.PI);
 	}
 
 	public run(): void {
@@ -49,9 +49,9 @@ export default class Simulation {
 		this.handleDrag(frameTime);
 
 		this.renderer.clear();
-		this.renderer.renderBorderRuler();
 		this.renderer.renderPendulumHistory(this.pendulum);
 		this.renderer.renderPendulum(this.pendulum);
+		this.renderer.renderBorderRuler();
 
 		window.requestAnimationFrame(this.step);
 	};

@@ -40,11 +40,6 @@ main {
 	flex-direction: row;
 }
 
-header {
-	user-select: none;
-	text-align: center;
-}
-
 footer {
 	width: 100%;
 	text-align: center;
@@ -52,6 +47,7 @@ footer {
 
 a {
 	font-weight: bold;
+	font-style: italic;
 	text-decoration: none;
 	color: 	#10b981;
 }
