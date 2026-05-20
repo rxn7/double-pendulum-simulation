@@ -1,6 +1,8 @@
 import { HistoryEntry, DoublePendulum } from "./double_pendulum";
 import { SimulationProperties } from "./simulation_properties";
 
+const ACCENT_COLOR: string = "#10b981";
+
 export default class Renderer {
 	private ctx: CanvasRenderingContext2D;
 
@@ -45,8 +47,8 @@ export default class Renderer {
 		this.ctx.lineWidth = 4;
 		this.ctx.stroke();
 
-		this.renderCircle(x1, y1, 5 + SimulationProperties.mass1 * 0.5, "#10b981");
-		this.renderCircle(x2, y2, 5 + SimulationProperties.mass2 * 0.5, "#10b981");
+		this.renderCircle(x1, y1, 5 + SimulationProperties.mass1 * 0.5, ACCENT_COLOR);
+		this.renderCircle(x2, y2, 5 + SimulationProperties.mass2 * 0.5, ACCENT_COLOR);
 	}
 
 	public renderPendulumHistory(pendulum: DoublePendulum): void {
@@ -93,6 +95,80 @@ export default class Renderer {
 		this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
 		this.ctx.fillStyle = color;
 		this.ctx.fill();
+	}
+
+	public renderBorderRuler(): void {
+		const fontSize: number = 15;
+		const majorTickLength: number = 15;
+		const halfTickLength: number = 7;
+		const minorTickLength: number = 3;
+
+		const scale: number = this.getPixelsPerMeter();
+		const rawStep: number = 150.0 / scale;
+
+		const mag: number = Math.pow(10, Math.floor(Math.log10(rawStep)));
+		const normalizedStep: number = rawStep / mag;
+
+		let majorStep: number = mag;
+		if(normalizedStep >= 5)			majorStep *= 5;
+		else if(normalizedStep >= 2)	majorStep *= 2;
+
+		const minorStep: number = majorStep * 0.1;
+
+		this.ctx.beginPath();
+		this.ctx.lineWidth = 2;
+		this.ctx.fillStyle = ACCENT_COLOR;
+		this.ctx.strokeStyle = "#555";
+		this.ctx.font = `bold ${fontSize}px monospace`;
+
+		const drawAxis = (isX: boolean): void => {
+			const halfDim = (isX ? this.canvas.width : this.canvas.height) * 0.5;
+
+			this.ctx.textAlign = isX ? "center" : "left";
+			this.ctx.textBaseline = isX ? "bottom" : "middle";
+
+			const startTick: number = Math.floor(-halfDim / scale / minorStep);
+			const endTick: number = Math.ceil(halfDim / scale / minorStep);
+
+			for(let i = startTick; i <= endTick; ++i) {
+				const value: number = i * minorStep;
+				const position: number = isX 
+					? halfDim + (value * scale) 
+					: halfDim - (value * scale);
+
+				const isMajor: boolean = i % 10 === 0;
+				const isHalf: boolean = i % 5 === 0;
+
+				const length: number = isMajor ? majorTickLength : (isHalf ? halfTickLength : minorTickLength);
+
+				if(isX) {
+					this.ctx.moveTo(position, this.canvas.height);
+					this.ctx.lineTo(position, this.canvas.height - length);
+
+				} else {
+					this.ctx.moveTo(0, position);
+					this.ctx.lineTo(length, position);
+				}
+
+				if(isMajor) {
+					const text: string = Number.isInteger(value) ? value.toString() : value.toPrecision(2);
+					const offset: number = majorTickLength + 3;
+
+					if(isX) {
+						if(position > 40) {
+							this.ctx.fillText(text, position, this.canvas.height - offset);
+						}
+					} else if(position < this.canvas.width - 40) {
+						this.ctx.fillText(text, offset, position);
+					}
+				}
+			}
+		};
+
+		drawAxis(true);
+		drawAxis(false);
+
+		this.ctx.stroke();
 	}
 
 	private handleResize(): void {

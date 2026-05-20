@@ -49,6 +49,7 @@ export default class Simulation {
 		this.handleDrag(frameTime);
 
 		this.renderer.clear();
+		this.renderer.renderBorderRuler();
 		this.renderer.renderPendulumHistory(this.pendulum);
 		this.renderer.renderPendulum(this.pendulum);
 
@@ -90,7 +91,7 @@ export default class Simulation {
 		}
 	}
 
-	private onMouseUp(e: MouseEvent): void {
+	private onMouseUp(_: MouseEvent): void {
 		this.pendulum.dragTarget = DoublePendulumPart.None;
 		this.isDragging = false;
 	}
