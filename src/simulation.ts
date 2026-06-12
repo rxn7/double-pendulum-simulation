@@ -19,17 +19,17 @@ export default class Simulation {
 		window.addEventListener("mouseup", this.onMouseUp.bind(this));
 		window.addEventListener("mousemove", this.onMouseMove.bind(this));
 
-		this.step = this.step.bind(this); // bind this so the animationFrame callback works
+		this.update = this.update.bind(this); // bind this so the animationFrame callback works
 
 		this.pendulum = new DoublePendulum(0, 0, Math.PI - 0.01, Math.PI);
 	}
 
 	public run(): void {
 		this.lastStepTime = performance.now();
-		window.requestAnimationFrame(this.step);
+		window.requestAnimationFrame(this.update);
 	}
 
-	private step(time: DOMHighResTimeStamp): void {
+	private update(time: DOMHighResTimeStamp): void {
 		const frameTime: number = Math.min(0.1, (time - this.lastStepTime) * 0.001);
 		this.lastStepTime = time;
 
@@ -46,17 +46,17 @@ export default class Simulation {
 			this.pendulum.update();
 		}
 
-		this.handleDrag(frameTime);
+		this.handleMouseDrag(frameTime);
 
 		this.renderer.clear();
 		this.renderer.renderPendulumHistory(this.pendulum);
 		this.renderer.renderPendulum(this.pendulum);
 		this.renderer.renderBorderRuler();
 
-		window.requestAnimationFrame(this.step);
+		window.requestAnimationFrame(this.update);
 	};
 	
-	private handleDrag(deltaTime: number): void {
+	private handleMouseDrag(deltaTime: number): void {
 		if(!this.isDragging) {
 			const { x1, y1, x2, y2 } = this.pendulum.getPositions();
 			const scale: number = this.renderer.getPixelsPerMeter();
@@ -80,7 +80,7 @@ export default class Simulation {
 		}
 
 		if(this.isDragging && this.pendulum.dragTarget !== DoublePendulumPart.None) {
-			this.pendulum.handleDrag(this.mouseX, this.mouseY, deltaTime);
+			this.pendulum.handleMouseDrag(this.mouseX, this.mouseY, deltaTime);
 		}
 	}
 

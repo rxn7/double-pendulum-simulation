@@ -64,7 +64,7 @@ export class DoublePendulum {
 	}
 
 	public update(): void {
-		this.pushToHistory();
+		this.pushStateToHistory();
 	}
 
 	public simulationStep(deltaTime: number): void {
@@ -73,7 +73,7 @@ export class DoublePendulum {
 		this.normalizeAngles();
 	}
 
-	public handleDrag(mouseX: number, mouseY: number, deltaTime: number): void {
+	public handleMouseDrag(mouseX: number, mouseY: number, deltaTime: number): void {
 		if(deltaTime <= 0) {
 			return;
 		}
@@ -166,8 +166,14 @@ export class DoublePendulum {
 		const totalMass: number = mass1 + mass2;
 		const adjustedMass: number = 2 * mass1 + mass2;
 		const denominator: number = adjustedMass - mass2 * Math.cos(2 * angle1 - 2 * angle2);
+
 		const frictionTorque1: number = -pivotFriction * velocity1;
 		const frictionTorque2: number = -pivotFriction * (velocity2 - velocity1);
+		const netFrictionTorque1: number = frictionTorque1 - frictionTorque2;
+		const netFrictionTorque2: number = frictionTorque2;
+
+		const frictionForce1: number = (2 / length1) * netFrictionTorque1 - (2 * Math.cos(angleDelta) / length2) * netFrictionTorque2;
+		const frictionForce2: number = (2 * totalMass / (mass2 * length2)) * netFrictionTorque2 - (2 * Math.cos(angleDelta) / length1) * netFrictionTorque1;
 
 		const upperGravityPull: number = -gravity * adjustedMass * Math.sin(angle1);
 		const lowerGravityDrag: number = -mass2 * gravity * Math.sin(angle1 - 2 * angle2);
@@ -178,8 +184,8 @@ export class DoublePendulum {
 		const lowerGravityPull: number = gravity * totalMass * Math.cos(angle1);
 		const coriolisEffect: number = velocity2 * velocity2 * length2 * mass2 * Math.cos(angleDelta);
 
-		const acceleration1: number = (upperGravityPull + lowerGravityDrag + upperCentrifugalPull) / (length1 * denominator) + frictionTorque1 - frictionTorque2;
-		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect)) / (length2 * denominator) + frictionTorque2;
+		const acceleration1: number = (upperGravityPull + lowerGravityDrag + upperCentrifugalPull + frictionForce1) / (length1 * denominator);
+		const acceleration2: number = (couplingMultiplier * (lowerCentrifugalPull + lowerGravityPull + coriolisEffect) + frictionForce2) / (length2 * denominator);
 
 		return {
 			mass1: {
@@ -218,7 +224,7 @@ export class DoublePendulum {
 		}
 	}
 
-	private pushToHistory() {
+	private pushStateToHistory() {
 		const { x2, y2 } = this.getPositions();
 
 		const entry: HistoryEntry = {

@@ -25,7 +25,7 @@ function handleGravityInput(): void {
 
 	input.addEventListener("input", () => {
 		SimulationProperties.gravity = input.valueAsNumber;
-		valueDisplay.textContent = `${SimulationProperties.gravity}m/s`;
+		valueDisplay.textContent = `${SimulationProperties.gravity}m/s²`;
 	});
 }
 
