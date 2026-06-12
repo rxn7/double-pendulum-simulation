@@ -13,6 +13,7 @@ export default class Simulation {
 	private mouseY: number = 0;
 	private lastStepTime: DOMHighResTimeStamp = 0;
 	private accumulator: number = 0;
+	private tickCounter: number = 0;
 
 	constructor(private readonly renderer: Renderer) {
 		this.renderer.canvas.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -36,14 +37,11 @@ export default class Simulation {
 		this.accumulator += frameTime;
 		while(this.accumulator >= FIXED_TIME_STEP) {
 			if(!SimulationProperties.isPaused) {
-				this.pendulum.simulationStep(FIXED_TIME_STEP);
+				this.pendulum.simulationStep(this.tickCounter, FIXED_TIME_STEP);
 			}
 			
 			this.accumulator -= FIXED_TIME_STEP;
-		}
-
-		if(!SimulationProperties.isPaused) {
-			this.pendulum.update();
+			++this.tickCounter;
 		}
 
 		this.handleMouseDrag(frameTime);

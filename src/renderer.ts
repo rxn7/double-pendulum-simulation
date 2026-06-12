@@ -74,21 +74,20 @@ export default class Renderer {
 			this.ctx.lineTo(x, y);
 		});
 
+		const [startX, startY] = getXY(pendulum.history[0]);
+
+		this.ctx.beginPath();
+		this.ctx.moveTo(startX, startY);
+
 		const len: number = pendulum.history.length;
 		for(let i = 0; i < len - 1; ++i) {
-			const [startX, startY] = getXY(pendulum.history[i]);
-			const [endX, endY] = getXY(pendulum.history[i+1]);
-
-			this.ctx.beginPath();
-			this.ctx.moveTo(startX, startY);
-			this.ctx.lineTo(endX, endY);
-
-			const progress: number = i / (len - 1);
-
-			this.ctx.strokeStyle = `rgba(239, 68, 68, ${progress})`;
-			this.ctx.lineWidth = 1.5;
-			this.ctx.stroke();
+			const [x, y] = getXY(pendulum.history[i+1]);
+			this.ctx.lineTo(x, y);
 		}
+
+		this.ctx.strokeStyle = "rgba(239, 68, 68, 0.5)";
+		this.ctx.lineWidth = 1.5;
+		this.ctx.stroke();
 	}
 
 	public renderCircle(x: number, y: number, radius: number, color: string): void {

@@ -6,8 +6,8 @@ export enum DoublePendulumPart {
 	Mass2
 };
 
-const MAX_HISTORY_SIZE: number = 500;
-const MAX_DRAG_VELOCITY: number = 5.0; // Radians per second
+const MAX_HISTORY_SIZE: number = 120;
+const MAX_MOUSE_DRAG_VELOCITY: number = 5.0; // Radians per second
 
 export interface HistoryEntry {
 	time: number;
@@ -63,11 +63,11 @@ export class DoublePendulum {
 		return { x1, y1, x2, y2 };
 	}
 
-	public update(): void {
-		this.pushStateToHistory();
-	}
+	public simulationStep(tick: number, deltaTime: number): void {
+		if(tick % 2 == 0) { // Push state to history every other tick (60hz)
+			this.pushStateToHistory();
+		}
 
-	public simulationStep(deltaTime: number): void {
 		this.checkAndRecoverState();
 		this.updatePhysics(deltaTime);
 		this.normalizeAngles();
@@ -85,7 +85,7 @@ export class DoublePendulum {
 			mass.angle = targetAngle;
 
 			const rawVelocity: number = angleDelta / deltaTime;
-			mass.velocity = Math.max(-MAX_DRAG_VELOCITY, Math.min(MAX_DRAG_VELOCITY, rawVelocity));
+			mass.velocity = Math.max(-MAX_MOUSE_DRAG_VELOCITY, Math.min(MAX_MOUSE_DRAG_VELOCITY, rawVelocity));
 		}
 
 		switch(this.dragTarget) {
