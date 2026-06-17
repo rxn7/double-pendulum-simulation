@@ -38,7 +38,7 @@ export interface DoublePendulumDerivatives {
 export class DoublePendulum {
 	public history: HistoryEntry[] = []
 	public dragTarget: DoublePendulumPart = DoublePendulumPart.None;
-	public state: DoublePendulumState;
+	private state: DoublePendulumState;
 
 	constructor(public originX: number, public originY: number, angle1: number, angle2: number) {
 		this.state = {
@@ -51,6 +51,10 @@ export class DoublePendulum {
 				velocity: 0
 			},
 		}
+	}
+
+	public getState(): DoublePendulumState {
+		return structuredClone(this.state);
 	}
 
 	public getPositions(): { x1: number, y1: number, x2: number, y2: number } {

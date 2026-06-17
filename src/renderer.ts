@@ -1,4 +1,4 @@
-import { HistoryEntry, DoublePendulum } from "./double_pendulum";
+import { HistoryEntry, DoublePendulum, DoublePendulumState } from "./double_pendulum";
 import { SimulationProperties } from "./simulation_properties";
 
 const ACCENT_COLOR: string = "#10b981";
@@ -33,11 +33,13 @@ export default class Renderer {
 		const originX: number = this.canvas.width * 0.5 + pendulum.originX;
 		const originY: number = this.canvas.height * 0.5 + pendulum.originY;
 
-		const x1: number = originX + SimulationProperties.length1 * Math.sin(pendulum.state.mass1.angle) * scale;
-		const y1: number = originY + SimulationProperties.length1 * Math.cos(pendulum.state.mass1.angle) * scale;
+		const state: DoublePendulumState = pendulum.getState();
 
-		const x2: number = x1 + SimulationProperties.length2 * Math.sin(pendulum.state.mass2.angle) * scale;
-		const y2: number = y1 + SimulationProperties.length2 * Math.cos(pendulum.state.mass2.angle) * scale;
+		const x1: number = originX + SimulationProperties.length1 * Math.sin(state.mass1.angle) * scale;
+		const y1: number = originY + SimulationProperties.length1 * Math.cos(state.mass1.angle) * scale;
+
+		const x2: number = x1 + SimulationProperties.length2 * Math.sin(state.mass2.angle) * scale;
+		const y2: number = y1 + SimulationProperties.length2 * Math.cos(state.mass2.angle) * scale;
 
 		this.ctx.beginPath();
 		this.ctx.moveTo(originX, originY);
