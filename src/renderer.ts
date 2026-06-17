@@ -3,7 +3,6 @@ import { SimulationProperties } from "./simulation_properties";
 
 const ACCENT_COLOR: string = "#10b981";
 
-
 export default class Renderer {
 	private ctx: CanvasRenderingContext2D;
 

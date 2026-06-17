@@ -3,7 +3,8 @@ import { SimulationProperties } from "./simulation_properties"
 document.addEventListener('DOMContentLoaded', () => {
 	handlePauseButton();
 	handleGravityInput();
-	handlePivotFrictionInput();
+	handlePivotFrictionInput(true);
+	handlePivotFrictionInput(false);
 	handleMassInput(true);
 	handleMassInput(false);
 	handleLengthInput(true);
@@ -29,22 +30,28 @@ function handleGravityInput(): void {
 	});
 }
 
-function handlePivotFrictionInput(): void {
-	const [input, valueDisplay] = getInputAndDisplay("friction-input");
+function handlePivotFrictionInput(isArm1: boolean): void {
+	const [input, valueDisplay] = getInputAndDisplay(isArm1 ? "friction1-input" : "friction2-input");
 
 	input.addEventListener("input", () => {
-		SimulationProperties.pivotFriction = input.valueAsNumber;
-		valueDisplay.textContent = `${SimulationProperties.pivotFriction}N⋅m⋅s/rad`;
+		const value: number = input.valueAsNumber;
+
+		if(isArm1)
+			SimulationProperties.pivotFriction1 = value;
+		else
+			SimulationProperties.pivotFriction2 = value;
+		
+		valueDisplay.textContent = `${value}N⋅m⋅s/rad`;
 	});
 }
 
-function handleMassInput(isArm1: boolean): void {
-	const [input, valueDisplay] = getInputAndDisplay(isArm1 ? "mass1-input" : "mass2-input");
+function handleMassInput(isMass1: boolean): void {
+	const [input, valueDisplay] = getInputAndDisplay(isMass1 ? "mass1-input" : "mass2-input");
 
 	input.addEventListener("input", () => {
 		const value: number = Math.max(1, Math.min(10, input.valueAsNumber));
 
-		if(isArm1)
+		if(isMass1)
 			SimulationProperties.mass1 = value;
 		else
 			SimulationProperties.mass2 = value;

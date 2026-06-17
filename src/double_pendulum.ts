@@ -155,7 +155,8 @@ export class DoublePendulum {
 		const length1: number = SimulationProperties.length1;
 		const length2: number = SimulationProperties.length2;
 		const gravity: number = SimulationProperties.gravity;
-		const pivotFriction: number = SimulationProperties.pivotFriction;
+		const pivotFriction1: number = SimulationProperties.pivotFriction1;
+		const pivotFriction2: number = SimulationProperties.pivotFriction2;
 
 		const angle1: number = state.mass1.angle;
 		const angle2: number = state.mass2.angle;
@@ -167,8 +168,8 @@ export class DoublePendulum {
 		const adjustedMass: number = 2 * mass1 + mass2;
 		const denominator: number = adjustedMass - mass2 * Math.cos(2 * angle1 - 2 * angle2);
 
-		const frictionTorque1: number = -pivotFriction * velocity1;
-		const frictionTorque2: number = -pivotFriction * (velocity2 - velocity1);
+		const frictionTorque1: number = -pivotFriction1 * velocity1;
+		const frictionTorque2: number = -pivotFriction2 * (velocity2 - velocity1);
 		const netFrictionTorque1: number = frictionTorque1 - frictionTorque2;
 		const netFrictionTorque2: number = frictionTorque2;
 
